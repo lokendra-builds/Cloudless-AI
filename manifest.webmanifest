@@ -1,0 +1,15 @@
+{
+  "name": "Cloudless: private AI chat in your browser",
+  "short_name": "Cloudless",
+  "description": "An AI assistant that runs 100% in your browser. No server, no account, no API key.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf9f5",
+  "theme_color": "#faf9f5",
+  "icons": [
+    { "src": "assets/logo.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "assets/logo-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
