@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About Cloudless-AI: Free Local LLM Chat in Your Browser</title>
+  <meta name="description" content="How Cloudless-AI works: open models like Qwen3 and Llama 3.2 run on your own CPU or GPU inside the browser. Features, models, privacy, comparison and FAQ.">
+  <meta name="author" content="Lokendra Singh Rathore">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="theme-color" content="#faf9f5" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#262624" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+  <link rel="canonical" href="https://lokendra-builds.github.io/Cloudless-AI/about.html">
+  <link rel="alternate" type="text/markdown" href="llms.txt" title="Cloudless-AI summary for AI assistants">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preload" href="vendor/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="vendor/fonts/source-serif-4.woff2" as="font" type="font/woff2" crossorigin>
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Cloudless-AI">
+  <meta property="og:title" content="About Cloudless-AI: free local LLM chat in your browser">
+  <meta property="og:description" content="Open models run on your own CPU or GPU, inside the browser tab. No server, no account, no API key. Features, models, privacy and FAQ.">
+  <meta property="og:url" content="https://lokendra-builds.github.io/Cloudless-AI/about.html">
+  <meta property="og:image" content="https://lokendra-builds.github.io/Cloudless-AI/assets/social-preview.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:image:alt" content="Cloudless-AI: a chat window answering with a Python code block, next to the words Private AI chat that runs in your browser">
+  <meta property="og:locale" content="en_IN">
+  <meta property="article:modified_time" content="2026-11-27">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="About Cloudless-AI: free local LLM chat in your browser">
+  <meta name="twitter:description" content="Open models on your own CPU or GPU, in the browser. No server, no account, no API key.">
+  <meta name="twitter:image" content="https://lokendra-builds.github.io/Cloudless-AI/assets/social-preview.png">
+  <meta name="twitter:image:alt" content="Cloudless-AI chat window with a Python answer">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://lokendra-builds.github.io/Cloudless-AI/about.html",
+        "url": "https://lokendra-builds.github.io/Cloudless-AI/about.html",
+        "name": "About Cloudless-AI: Free Local LLM Chat in Your Browser",
+        "description": "How Cloudless-AI works: open models run on your own CPU or GPU inside the browser. Features, models, privacy, comparison and FAQ.",
+        "inLanguage": "en",
+        "dateModified": "2026-11-27",
+        "about": { "@id": "https://lokendra-builds.github.io/Cloudless-AI/#app" },
+        "primaryImageOfPage": "https://lokendra-builds.github.io/Cloudless-AI/assets/shot-chat.jpg",
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Cloudless-AI", "item": "https://lokendra-builds.github.io/Cloudless-AI/" },
+            { "@type": "ListItem", "position": 2, "name": "About", "item": "https://lokendra-builds.github.io/Cloudless-AI/about.html" }
+          ]
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          { "@type": "Question", "name": "What is Cloudless-AI?", "acceptedAnswer": { "@type": "Answer", "text": "Cloudless-AI is a free, open-source (MIT) AI chat app that runs open language models such as Qwen3, Llama 3.2 and Gemma directly in your web browser, on your own CPU or GPU. There is no server, no account and no API key." } },
+          { "@type": "Question", "name": "Does Cloudless-AI send my chats to a server?", "acceptedAnswer": { "@type": "Answer", "text": "No. The model runs inside your browser tab, and chats, projects, notes and artifacts are saved in your browser's IndexedDB. The network is only used to load the app, to download a model once, and for web tools you turn on yourself." } },
+          { "@type": "Question", "name": "Do I need a GPU or an API key?", "acceptedAnswer": { "@type": "Answer", "text": "No. CPU mode runs small open models (0.4 to 1.7 GB) with WebAssembly on any computer with a modern browser. GPU mode uses WebGPU for faster replies where the browser supports it. No API key or account is needed." } },
+          { "@type": "Question", "name": "Which models can Cloudless-AI run?", "acceptedAnswer": { "@type": "Answer", "text": "On the CPU: Qwen3 1.7B and 0.6B, Qwen2.5 1.5B, Qwen2.5 Coder 1.5B, Llama 3.2 1B and 3B, Gemma 3 1B, SmolLM2 1.7B and Phi-3.5 mini. On the GPU: Qwen2.5 1.5B, Qwen3 1.7B, Llama 3.2 3B, Phi-3.5 mini, Gemma 2 2B and Llama 3.1 8B." } },
+          { "@type": "Question", "name": "Does it work offline?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. After the first visit and the first model download, the model is cached in the browser and chats work with the network off." } },
+          { "@type": "Question", "name": "How do shared artifact links work without a server?", "acceptedAnswer": { "@type": "Answer", "text": "The whole artifact (an HTML page, SVG image, Markdown document or code file) is compressed into the link itself, after the # sign. Browsers never send that part of a link to a server, so the content only goes where you send the link, and it is unpacked in the other person's browser." } },
+          { "@type": "Question", "name": "How is it different from ChatGPT or Claude.ai?", "acceptedAnswer": { "@type": "Answer", "text": "ChatGPT and Claude.ai run very large models on their own servers and need an account. Cloudless-AI runs small open models (0.4 to 5 GB) on your own device, so it is free and private, but its answers are simpler and slower than those of the largest models." } },
+          { "@type": "Question", "name": "Is Cloudless-AI free and open source?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. It is free to use and its code is open source under the MIT license, on GitHub at github.com/lokendra-builds/Cloudless-AI." } }
+        ]
+      }
+    ]
+  }
+  </script>
+  <link rel="stylesheet" href="css/about.css?v=df5b11a2a1">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="./"><img src="assets/logo.svg" alt="" width="26" height="26"><span>Cloudless-AI</span></a>
+    <nav aria-label="Page">
+      <a href="#features">Features</a>
+      <a href="#models">Models</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#faq">FAQ</a>
+      <a class="btn" href="./">Open the app</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="title">
+      <p class="kicker">Free · Open source (MIT) · Runs on your device</p>
+      <h1 id="title">Cloudless-AI: private AI chat that runs in your browser</h1>
+      <p class="lead"><strong>Cloudless-AI</strong> is a free, open-source AI chat app that runs open language models such as <strong>Qwen3</strong>, <strong>Llama 3.2</strong> and <strong>Gemma</strong> directly in your web browser, on your own CPU or GPU. There is no server, no account and no API key: your chats, projects, notes and artifacts are stored only in your browser.</p>
+      <p class="cta"><a class="btn big" href="./">Open Cloudless-AI</a> <a class="btn ghost big" href="https://github.com/lokendra-builds/Cloudless-AI">Source code on GitHub</a></p>
+      <figure>
+        <img src="assets/shot-chat.jpg" alt="A Cloudless-AI chat: the reply shows its live steps (model loaded, Wikipedia searched, conversation read, thought it through, answer written at 25.6 tokens per second), then the answer with a numbered source" width="1280" height="800" fetchpriority="high">
+        <figcaption>A reply with its live status: every step the app really took, with real timings, and the Wikipedia source it used.</figcaption>
+      </figure>
+    </section>
+
+    <section aria-labelledby="facts">
+      <h2 id="facts">Key facts</h2>
+      <dl class="facts">
+        <div><dt>Price</dt><dd>Free. No sign-up, no subscription, no token bills.</dd></div>
+        <div><dt>License</dt><dd>MIT (open source).</dd></div>
+        <div><dt>Runs on</dt><dd>Any modern browser. CPU mode uses WebAssembly; GPU mode uses WebGPU (Chrome, Edge).</dd></div>
+        <div><dt>Models</dt><dd>15 open models from 0.4 GB to 5 GB, downloaded once from Hugging Face.</dd></div>
+        <div><dt>Your data</dt><dd>Stored in your browser (IndexedDB and localStorage). Nothing is uploaded.</dd></div>
+        <div><dt>Offline</dt><dd>Yes, after the first model download.</dd></div>
+        <div><dt>Made by</dt><dd>Lokendra Singh Rathore, in India.</dd></div>
+      </dl>
+    </section>
+
+    <section aria-labelledby="how">
+      <h2 id="how">How it works</h2>
+      <ol class="steps">
+        <li><strong>Open the page.</strong> The whole app is a static web page: HTML, CSS and JavaScript, with no backend.</li>
+        <li><strong>Pick a model.</strong> The first time, the model file (for example Qwen3 1.7B, 1.1 GB) downloads from Hugging Face and is saved in your browser.</li>
+        <li><strong>Chat.</strong> The model runs in your tab: on the CPU through <a href="https://github.com/ngxson/wllama">wllama</a> (llama.cpp compiled to WebAssembly), or on the GPU through <a href="https://github.com/mlc-ai/web-llm">WebLLM</a>. Replies stream word by word.</li>
+        <li><strong>Everything stays local.</strong> Chats, projects, notes, artifacts and settings live in your browser storage until you delete them.</li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="features">
+      <h2 id="features">Features</h2>
+      <div class="grid">
+        <article><h3 id="chat">Chat like Claude</h3><p>Streaming replies with Markdown, tables and highlighted code. Copy, retry, edit and resend any message; every message shows its date and time.</p></article>
+        <article><h3 id="status">Live status</h3><p>While a reply is made you see what is really happening: loading the model, reading project files, searching the web, reading the conversation, thinking and writing, each with its real time and the speed in tokens per second.</p></article>
+        <article><h3 id="pdf">Read PDFs</h3><p>Attach a PDF and the text inside it is read in your browser with pdf.js, then given to the model. The PDF also opens next to the chat. Scanned PDFs, which are only pictures, can't be read yet.</p></article>
+        <article><h3 id="projects">Projects</h3><p>Group chats, notes and artifacts. Give a project its own instructions and knowledge files, and every chat inside it uses them.</p></article>
+        <article><h3 id="artifacts">Artifacts and share links</h3><p>Keep HTML pages, SVG images, Markdown documents and code files as artifacts. Share one as a link that carries the whole artifact inside it, so no server is needed.</p></article>
+        <article><h3 id="web-tools">Web tools (opt-in)</h3><p>Let a chat look things up on Wikipedia, DuckDuckGo or any web page (through Jina Reader). All off by default; replies cite their sources as numbered links.</p></article>
+        <article><h3 id="think">Think mode</h3><p>Reasoning models such as Qwen3 can think before they answer. Turn it on for careful answers or off for fast ones.</p></article>
+        <article><h3 id="preview">Live HTML preview</h3><p>A web page in a reply opens in a side panel and runs there, sandboxed and offline, with Preview and Code tabs.</p></article>
+        <article><h3 id="memory">Memory you can see</h3><p>A meter shows how full the model's memory is. The context window goes from 4K tokens up to 32K where the model and your RAM allow it.</p></article>
+      </div>
+      <figure>
+        <img src="assets/shot-artifact.jpg" alt="An HTML artifact, a Pomodoro timer, running in its preview with its share link shown above it" width="1280" height="800" loading="lazy">
+        <figcaption>An artifact and its share link: the whole page travels inside the link.</figcaption>
+      </figure>
+    </section>
+
+    <section aria-labelledby="models">
+      <h2 id="models">Models</h2>
+      <div class="table-wrap">
+        <table>
+          <caption>Models Cloudless-AI can run, by mode</caption>
+          <thead><tr><th scope="col">Mode</th><th scope="col">Models</th><th scope="col">Download size</th><th scope="col">Needs</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">CPU (default)</th><td>Qwen3 1.7B (recommended), Qwen3 0.6B, Qwen2.5 1.5B, Qwen2.5 Coder 1.5B, Llama 3.2 1B and 3B, Gemma 3 1B, SmolLM2 1.7B, Phi-3.5 mini</td><td>0.4 to 1.7 GB</td><td>Any modern browser</td></tr>
+            <tr><th scope="row">GPU</th><td>Qwen2.5 1.5B, Qwen3 1.7B, Llama 3.2 3B, Phi-3.5 mini, Gemma 2 2B, Llama 3.1 8B</td><td>1.6 to 5 GB of GPU memory</td><td>A browser with WebGPU</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Small models make mistakes more often than large ones. Cloudless-AI says so under the message box, and its web tools can add sources to an answer.</p>
+    </section>
+
+    <section aria-labelledby="privacy">
+      <h2 id="privacy">Privacy</h2>
+      <p>The model runs inside your browser tab, so what you type is never sent to an AI company. The network is used only to:</p>
+      <ul>
+        <li>load the app itself (a static page on GitHub Pages);</li>
+        <li>download a model the first time you pick it (from Hugging Face);</li>
+        <li>in GPU mode, load the WebLLM library;</li>
+        <li>run web tools, only if you turn them on or ask for one with a command such as <code>/wiki</code>. The line under the message box says exactly where your question goes.</li>
+      </ul>
+      <p>A shared artifact link carries the artifact after the <code>#</code>, the part of a link browsers never send to a server. "Delete all data" in Settings removes every chat, project, note, artifact and downloaded model.</p>
+    </section>
+
+    <section aria-labelledby="compare">
+      <h2 id="compare">How it compares</h2>
+      <div class="table-wrap">
+        <table>
+          <caption>Cloudless-AI compared with cloud chat apps and local desktop apps</caption>
+          <thead><tr><th scope="col"></th><th scope="col">Cloudless-AI</th><th scope="col">ChatGPT, Claude.ai</th><th scope="col">Ollama + Open WebUI, LM Studio</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Where the model runs</th><td>Your browser tab</td><td>Their servers</td><td>An app on your computer</td></tr>
+            <tr><th scope="row">Install</th><td>None, open a link</td><td>None</td><td>Install and run a local server</td></tr>
+            <tr><th scope="row">Account or key</th><td>None</td><td>Account required</td><td>None</td></tr>
+            <tr><th scope="row">Model size</th><td>Small (0.5 to 8B)</td><td>The largest models</td><td>Anything your hardware can run</td></tr>
+            <tr><th scope="row">Cost</th><td>Free, MIT</td><td>Free tiers, paid plans</td><td>Free</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="faq">
+      <h2 id="faq">Frequently asked questions</h2>
+      <div class="faq">
+        <details open><summary><h3>What is Cloudless-AI?</h3></summary><p>Cloudless-AI is a free, open-source (MIT) AI chat app that runs open language models such as Qwen3, Llama 3.2 and Gemma directly in your web browser, on your own CPU or GPU. There is no server, no account and no API key.</p></details>
+        <details><summary><h3>Does Cloudless-AI send my chats to a server?</h3></summary><p>No. The model runs inside your browser tab, and chats, projects, notes and artifacts are saved in your browser's IndexedDB. The network is only used to load the app, to download a model once, and for web tools you turn on yourself.</p></details>
+        <details><summary><h3>Do I need a GPU or an API key?</h3></summary><p>No. CPU mode runs small open models (0.4 to 1.7 GB) with WebAssembly on any computer with a modern browser. GPU mode uses WebGPU for faster replies where the browser supports it. No API key or account is needed.</p></details>
+        <details><summary><h3>Which models can Cloudless-AI run?</h3></summary><p>On the CPU: Qwen3 1.7B and 0.6B, Qwen2.5 1.5B, Qwen2.5 Coder 1.5B, Llama 3.2 1B and 3B, Gemma 3 1B, SmolLM2 1.7B and Phi-3.5 mini. On the GPU: Qwen2.5 1.5B, Qwen3 1.7B, Llama 3.2 3B, Phi-3.5 mini, Gemma 2 2B and Llama 3.1 8B.</p></details>
+        <details><summary><h3>Does it work offline?</h3></summary><p>Yes. After the first visit and the first model download, the model is cached in the browser and chats work with the network off.</p></details>
+        <details><summary><h3>How do shared artifact links work without a server?</h3></summary><p>The whole artifact (an HTML page, SVG image, Markdown document or code file) is compressed into the link itself, after the # sign. Browsers never send that part of a link to a server, so the content only goes where you send the link, and it is unpacked in the other person's browser.</p></details>
+        <details><summary><h3>How is it different from ChatGPT or Claude.ai?</h3></summary><p>ChatGPT and Claude.ai run very large models on their own servers and need an account. Cloudless-AI runs small open models (0.4 to 5 GB) on your own device, so it is free and private, but its answers are simpler and slower than those of the largest models.</p></details>
+        <details><summary><h3>Is Cloudless-AI free and open source?</h3></summary><p>Yes. It is free to use and its code is open source under the MIT license, on GitHub at <a href="https://github.com/lokendra-builds/Cloudless-AI">github.com/lokendra-builds/Cloudless-AI</a>.</p></details>
+      </div>
+    </section>
+
+    <section aria-labelledby="credits">
+      <h2 id="credits">Built with</h2>
+      <p><a href="https://github.com/ngxson/wllama">wllama</a> and <a href="https://github.com/ggml-org/llama.cpp">llama.cpp</a> for CPU inference, <a href="https://github.com/mlc-ai/web-llm">WebLLM</a> for GPU inference, <a href="https://github.com/gzuidhof/coi-serviceworker">coi-serviceworker</a>, <a href="https://github.com/mozilla/pdf.js">pdf.js</a> for reading PDFs, and the <a href="https://github.com/adobe-fonts/source-serif">Source Serif 4</a> and <a href="https://rsms.me/inter/">Inter</a> fonts. Model weights come from their authors on Hugging Face under their own licenses.</p>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>Cloudless-AI by <a href="https://github.com/lokendra-builds">Lokendra Singh Rathore</a> · Made in India · MIT license · Updated <time datetime="2026-11-27">27 November 2026</time></p>
+    <p><a href="./">Open the app</a> · <a href="https://github.com/lokendra-builds/Cloudless-AI">GitHub</a> · <a href="llms.txt">llms.txt</a></p>
+    <p class="disclaimer">Not affiliated with Anthropic, OpenAI or Google. Product names belong to their owners.</p>
+  </footer>
+</body>
+</html>
