@@ -1,6 +1,10 @@
 <div align="center">
 
-<img src="assets/logo-full.svg" alt="cloudless-ai logo: an outline cloud with an orange swoosh and a small sparkle" width="420">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-full-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/logo-full.svg">
+  <img src="assets/logo-full.svg" alt="cloudless-ai logo: an outline cloud with an orange swoosh and a small sparkle" width="380">
+</picture>
 
 # Cloudless-AI: private AI chat that runs offline in your browser
 
