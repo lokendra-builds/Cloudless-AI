@@ -72,6 +72,11 @@ docs/
 *.md
 !/README.md
 
+# --- Banners page: kept locally, not published ---
+js/banners.js
+js/banner-page.js
+css/banners.css
+
 # --- Tests (kept locally, not published) ---
 tests/
 

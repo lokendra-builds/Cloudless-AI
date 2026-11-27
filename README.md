@@ -40,7 +40,6 @@ Every chat you type into a hosted AI goes to someone else's computer. Cloudless-
 - ⚡ **Runs on any computer.** CPU mode (WebAssembly) works everywhere; GPU mode (WebGPU) is faster where it's available.
 - 🧠 **Real open models.** Qwen3, Llama 3.2, Gemma, Phi-3.5 and more, from 0.4 GB, with a Think mode for harder questions.
 - 🌐 **Optional web lookups.** Wikipedia, DuckDuckGo and link reading, off until you turn them on, with source links in every answer.
-- 🎨 **Banners and thumbnails on the CPU.** 9 ready sizes for YouTube, Instagram, LinkedIn and websites, 4 templates, 6 colour sets. Type the text or let the local model write it, then download a PNG.
 - 🔗 **Share artifacts without a server.** Save a page, image, document or code as an artifact and share it as a link: the whole artifact is packed inside the link and opens in the other person's browser.
 - 💬 **Feels like Claude.** Projects, notes, artifacts, Markdown and code, live HTML preview, Ctrl+K palette, dark mode, phones.
 
@@ -68,7 +67,6 @@ python3 -m http.server 8081
 | **Projects** | Group chats and notes. Give a project its own instructions and knowledge files; every chat inside uses them. |
 | **Notes** | Markdown notes on their own or inside a project. Save any AI reply as a note in one click. |
 | **Artifacts** | HTML pages, SVG images, Markdown documents and code files you keep, on their own or inside a project. Press **Save** on any code block in a reply, or make one yourself. Preview and edit side by side; HTML runs sandboxed and offline. |
-| **Banners** | Thumbnails, posts and banners in 9 sizes: YouTube thumbnail and channel banner, Instagram square, portrait and story, LinkedIn post and profile banner, website hero and link preview. Pick one of 4 templates (Bold, Minimal, Split, Spotlight) and 6 colour sets, type your text or describe the topic and let the local model write it (it only writes the words, the app does the layout, so it works well even on a CPU). Text is sized to fit and kept inside each platform's safe area. Download a PNG at the exact size, an SVG, or save it as an artifact. |
 | **Share as a link** | **Share** packs the whole artifact into the link itself (compressed, after the `#`), so there is no upload and no server. Whoever opens the link sees it in their own browser and can **Save to my artifacts**. Very long links are flagged; files too big for a link can be downloaded instead. |
 | **Live status** | While a reply is made you see what is really happening, step by step, with real timings: loading the model, reading project files and attachments, searching the web, reading the conversation, thinking, writing (with tokens per second). When it's done it folds to one line, "Done · 5 steps · 6.2s", saved with the reply. |
 | **Reasoning models** | A **Think** switch: on for careful answers, off for fast ones. Thinking folds into "Thought for 6s", and endless thinking is stopped after a minute so you always get an answer. |
@@ -121,8 +119,6 @@ python3 -m http.server 8081
 <p align="center"><img src="screenshots/11-html-preview.png" alt="A reply with an HTML tip calculator, running live in the side panel on the right" width="100%"><br><sub>A reply's web page runs in the side panel, like an artifact</sub></p>
 
 <p align="center"><img src="screenshots/12-web-tools.png" alt="A reply that searched Wikipedia, with numbered citations, source cards and the Web tools menu open" width="100%"><br><sub>Web tools: turn on Wikipedia, DuckDuckGo or link reading, and every answer shows its sources</sub></p>
-
-<p align="center"><img src="screenshots/14-banners.png" alt="The Banners page: size chips for YouTube, Instagram, LinkedIn and websites, template cards, and a green YouTube thumbnail reading 5 Min Paneer" width="100%"><br><sub>Banners: 9 sizes, 4 templates, text written by you or by the local model, downloaded as a PNG</sub></p>
 
 <p align="center"><img src="screenshots/13-artifacts.png" alt="An HTML artifact, a Pomodoro timer, running in its preview with the share link shown above it" width="100%"><br><sub>Artifacts: keep pages, images, documents and code, and share any of them as a link that carries the whole artifact</sub></p>
 
@@ -243,8 +239,6 @@ css/app.css           warm light and dark themes
 css/about.css         About page styles
 js/app.js             chat screen, sidebar, header menu, model menu, settings
 js/pages.js           Projects, Notes and Artifacts pages
-js/banners.js         banner sizes, templates, text fitting, SVG and PNG export
-js/banner-page.js     the Banners page
 js/artifacts.js       artifact kinds, share links (compress into the URL), sandbox
 js/llm.js             CPU (wllama) and GPU (WebLLM) engines, streaming
 js/chats.js           prompt building, project knowledge budget, titles

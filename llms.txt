@@ -26,7 +26,6 @@
 - Projects: chats, notes and artifacts grouped together, with shared instructions and knowledge files.
 - Notes: Markdown notes; any reply can be saved as a note.
 - Artifacts: HTML pages, SVG images, Markdown documents and code files. A share link carries the whole artifact inside the URL (compressed, after the #), so sharing needs no server.
-- Banners: 9 sizes (YouTube thumbnail 1280×720 and channel banner 2560×1440; Instagram 1080×1080, 1080×1350 and story 1080×1920; LinkedIn post 1200×627 and profile banner 1584×396; website hero 1920×600 and link preview 1200×630), 4 templates and 6 colour sets. The local model writes the words, the app does the layout; download as PNG or SVG.
 - Web tools (off by default): Wikipedia search, DuckDuckGo instant answers, and reading any web page through Jina Reader, with numbered source links.
 - Think mode for reasoning models, live HTML preview in a sandboxed side panel, a memory meter, a Ctrl+K command palette, chat export to Markdown, light and dark themes, phone layout.
 
@@ -34,7 +33,7 @@
 
 - Models are small (0.5B to 8B parameters), so answers are simpler and slower than those of large cloud models, and can be wrong.
 - PDF text is read in the browser (pdf.js) and given to the model, but scanned PDFs (pictures only) cannot be read, and a small model's 4K memory holds only about the first 6,000 characters of a file.
-- It does not generate photos. It makes banners and thumbnails from templates, and can write SVG images and HTML pages as code.
+- It does not generate photos or images; it can write SVG images and HTML pages as code.
 
 ## Compared with
 

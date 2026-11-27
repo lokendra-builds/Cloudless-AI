@@ -12,7 +12,6 @@ import {
 } from './llm.js';
 import { TOOLS, TOOL_IDS, planTools, runTools, withSources, stepLabel, shortUrl } from './tools.js';
 import { escapeHTML } from './escape.js';
-import { renderBanners } from './banner-page.js';
 import { pdfText } from './pdf-text.js';
 
 const PARAMS = new URLSearchParams(location.search);
@@ -200,35 +199,10 @@ async function route() {
   if (m?.[1] === 'c') { if (m[2] !== state.chat?.id || state.view !== 'chat') await openChat(m[2]); return; }
   if (state.busy) stop();
   const root = $('view-page');
-  if (hash === '#/projects') { showView('projects'); await renderProjects(root); } else if (m?.[1] === 'p') { showView('project'); await renderProject(root, m[2]); } else if (hash === '#/notes') { showView('notes'); await renderNotes(root); } else if (m?.[1] === 'n') { showView('note'); await renderNote(root, m[2]); } else if (hash === '#/artifacts') { showView('artifacts'); await renderArtifacts(root); } else if (m?.[1] === 'a') { showView('artifact'); await renderArtifact(root, m[2]); } else if (hash === '#/banners') { showView('banners'); await renderBanners(root, bannerCtx()); } else if (hash.startsWith(SHARE_PREFIX)) { showView('shared'); await renderShared(root, hash.slice(SHARE_PREFIX.length)); } else { newChat(); return; }
+  if (hash === '#/projects') { showView('projects'); await renderProjects(root); } else if (m?.[1] === 'p') { showView('project'); await renderProject(root, m[2]); } else if (hash === '#/notes') { showView('notes'); await renderNotes(root); } else if (m?.[1] === 'n') { showView('note'); await renderNote(root, m[2]); } else if (hash === '#/artifacts') { showView('artifacts'); await renderArtifacts(root); } else if (m?.[1] === 'a') { showView('artifact'); await renderArtifact(root, m[2]); } else if (hash.startsWith(SHARE_PREFIX)) { showView('shared'); await renderShared(root, hash.slice(SHARE_PREFIX.length)); } else { newChat(); return; }
   root.scrollTop = 0;
   if (narrow()) setSidebar(false);
   document.querySelectorAll('.chat-item').forEach((n) => n.classList.remove('active'));
-}
-
-/** What the Banners page may use: toasts, the title bar, and the local model (words only). */
-function bannerCtx() {
-  return {
-    toast, go, setTitle: (t, o = {}) => setHeader(t, o),
-    llm: {
-      label: () => model().label,
-      gb: () => model().gb,
-      ready: () => modelReady(model()),
-      cached: () => modelCached(model()),
-      progress: () => state.loadProgress,
-      busy: () => state.busy,
-      load: () => startLoad(model()),
-      async ask(messages, { signal } = {}) {
-        setBusy(true);
-        try {
-          return await runChat(model(), messages, { signal, temperature: 0.7, think: false });
-        } finally {
-          setBusy(false);
-          updateModelState();
-        }
-      },
-    },
-  };
 }
 
 // ---------------------------------------------------------------- projects in chats
@@ -1694,7 +1668,6 @@ function paletteActions() {
     { label: 'Go to Notes', run: () => go('#/notes') },
     { label: 'New artifact', run: async () => { const a = await createArtifact({ kind: 'html' }); go(`#/a/${a.id}`); } },
     { label: 'Go to Artifacts', run: () => go('#/artifacts') },
-    { label: 'Make a banner or thumbnail', run: () => go('#/banners') },
     { label: 'Settings', hint: `${MOD} ,`, run: () => openSettings() },
     { label: `Theme: switch to ${document.documentElement.dataset.theme === 'dark' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches) ? 'light' : 'dark'}`, run: () => {
       const dark = document.documentElement.dataset.theme === 'dark' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
