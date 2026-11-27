@@ -22,9 +22,13 @@ export const DEFAULT_SYSTEM = 'You are Cloudless, a helpful, friendly assistant 
 /** A user message's text for the model, with any attached files placed before it. */
 export function userContent(m, maxFileChars = 6000) {
   const files = (m.files || []).map((f) => {
-    if (f.pdf) return `[The user attached a PDF named "${f.name}". You cannot see its contents; if they ask about it, say so and ask them to paste the text they need.]`;
+    if (f.pdf && !f.text) {
+      const why = f.error ? `it could not be read (${f.error})` : f.pages ? 'it has no text, only scanned pictures' : 'you cannot see its contents';
+      return `[The user attached a PDF named "${f.name}", but ${why}. If they ask about it, say so and ask them to paste the text they need.]`;
+    }
     const t = String(f.text ?? '');
     const body = t.length > maxFileChars ? `${t.slice(0, maxFileChars)}\n[… file cut to fit the model's memory …]` : t;
+    if (f.pdf) return `PDF: ${f.name} (${f.pages} page${f.pages === 1 ? '' : 's'}${f.read < f.pages ? `, first ${f.read} read` : ''})\n\`\`\`\n${body}\n\`\`\``;
     return `File: ${f.name}\n\`\`\`\n${body}\n\`\`\``;
   });
   return [...files, String(m.content ?? '')].filter((x) => x.trim()).join('\n\n');
@@ -100,6 +104,7 @@ export function composeSystem({ base = '', project = null, budget = KNOWLEDGE_BU
   const parts = [(base || '').trim() || DEFAULT_SYSTEM];
   let used = 0;
   let total = 0;
+  const files = []; // what really went in: [{name, chars, cut}]
   if (project) {
     parts.push(`You are working inside the project "${project.name}".${project.description ? ` About it: ${project.description}` : ''}`);
     if ((project.instructions || '').trim()) parts.push(`Project instructions:\n${project.instructions.trim()}`);
@@ -111,11 +116,12 @@ export function composeSystem({ base = '', project = null, budget = KNOWLEDGE_BU
       if (room <= 200) continue;
       const body = t.length > room ? `${t.slice(0, room)}\n[… cut to fit the model's memory …]` : t;
       used += Math.min(t.length, room);
+      files.push({ name: f.name, chars: Math.min(t.length, room), cut: t.length > room });
       docs.push(`File: ${f.name}\n\`\`\`\n${body}\n\`\`\``);
     }
     if (docs.length) parts.push(`Project knowledge (use it to answer):\n\n${docs.join('\n\n')}`);
   }
-  return { text: parts.join('\n\n'), used, total };
+  return { text: parts.join('\n\n'), used, total, files, instructions: !!(project?.instructions || '').trim() };
 }
 
 /** A note title from free text: its first non-empty line, without Markdown marks. */

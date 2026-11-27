@@ -4,13 +4,16 @@
 import { getSettings, saveSettings, saveChat, getChat, deleteChat, listChats, listItems, clearAll, storageUsage, wipeEverything } from './storage.js';
 import { renderMarkdown, isPreviewable } from './markdown.js';
 import { splitThinking, titleFrom, buildPrompt, groupChats, greeting, newId, composeSystem, noteTitleFrom, chatToMarkdown, fileNameFor, memoryUse, budgetsFor } from './chats.js';
-import { initPages, renderProjects, renderProject, renderNotes, renderNote, listProjects, getProject, createProject, createNote } from './pages.js';
+import { initPages, renderProjects, renderProject, renderNotes, renderNote, renderArtifacts, renderArtifact, renderShared, createArtifact, listProjects, getProject, createProject, createNote } from './pages.js';
+import { sandboxedFrame, kindFromLang, titleFrom as artifactTitle, SHARE_PREFIX } from './artifacts.js';
 import {
   CPU_MODELS, GPU_MODELS, currentModel, modelReady, modelCached, loadModel, chat as runChat,
   hasWebGPU, gpuHasF16, detectGpu, compatibleModelId, isCpuCached, isGpuCached, cpuMultithread, mockReady, unloadAll, ownModels, ctxOptions, kvGB, DEFAULT_CTX, loadedWithOtherCtx,
 } from './llm.js';
 import { TOOLS, TOOL_IDS, planTools, runTools, withSources, stepLabel, shortUrl } from './tools.js';
 import { escapeHTML } from './escape.js';
+import { renderBanners } from './banner-page.js';
+import { pdfText } from './pdf-text.js';
 
 const PARAMS = new URLSearchParams(location.search);
 const MOCK = PARAMS.get('mock') === '1';
@@ -34,7 +37,7 @@ const state = {
   query: '', // sidebar search
   pending: [], // files attached to the next message: [{name, size, text}]
   newProjectId: null, // project for the next new chat (set from a project page)
-  view: 'chat', // 'chat' or a page: 'projects' | 'project' | 'notes' | 'note'
+  view: 'chat', // 'chat' or a page: 'projects' | 'project' | 'notes' | 'note' | 'artifacts' | 'artifact' | 'shared'
 };
 
 // ---------------------------------------------------------------- helpers
@@ -43,12 +46,21 @@ const state = {
  * A short notice, centred in the chat window (not the whole screen) and just above the message
  * box, so it never covers what you type. Inside an open dialog it shows in that dialog instead.
  */
-function toast(text) {
+function toast(text, { action } = {}) {
   document.querySelectorAll('.toast').forEach((n) => n.remove());
   const t = document.createElement('div');
   t.className = 'toast';
   t.setAttribute('role', 'status');
   t.textContent = text;
+  if (action) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'toast-act';
+    b.textContent = action.label;
+    b.addEventListener('click', () => { t.remove(); action.run(); });
+    t.append(' ', b);
+    t.classList.add('has-act');
+  }
   const dialog = document.querySelector('dialog[open]');
   if (dialog) {
     t.classList.add('in-dialog');
@@ -59,7 +71,7 @@ function toast(text) {
     t.style.bottom = `${(dockShown ? dock.offsetHeight : 0) + 18}px`;
     el.main.appendChild(t);
   }
-  setTimeout(() => t.remove(), 1800);
+  setTimeout(() => t.remove(), action ? 4000 : 1800);
 }
 
 async function copyText(text) {
@@ -173,7 +185,7 @@ function showView(view) {
   $('view-page').hidden = !page;
   el.main.classList.toggle('on-page', page);
   if (page) el.main.classList.remove('empty');
-  document.querySelectorAll('.nav-link').forEach((a) => a.classList.toggle('active', a.dataset.nav === view || (view === 'project' && a.dataset.nav === 'projects') || (view === 'note' && a.dataset.nav === 'notes')));
+  document.querySelectorAll('.nav-link').forEach((a) => a.classList.toggle('active', a.dataset.nav === view || (view === 'project' && a.dataset.nav === 'projects') || (view === 'note' && a.dataset.nav === 'notes') || (['artifact', 'shared'].includes(view) && a.dataset.nav === 'artifacts')));
   closeTitleMenu();
 }
 
@@ -184,14 +196,39 @@ function go(hash) {
 /** Show whatever the address says: a chat, a page, or a new chat. */
 async function route() {
   const hash = location.hash;
-  const m = hash.match(/^#\/(c|p|n)\/(.+)$/);
+  const m = hash.match(/^#\/(c|p|n|a)\/(.+)$/);
   if (m?.[1] === 'c') { if (m[2] !== state.chat?.id || state.view !== 'chat') await openChat(m[2]); return; }
   if (state.busy) stop();
   const root = $('view-page');
-  if (hash === '#/projects') { showView('projects'); await renderProjects(root); } else if (m?.[1] === 'p') { showView('project'); await renderProject(root, m[2]); } else if (hash === '#/notes') { showView('notes'); await renderNotes(root); } else if (m?.[1] === 'n') { showView('note'); await renderNote(root, m[2]); } else { newChat(); return; }
+  if (hash === '#/projects') { showView('projects'); await renderProjects(root); } else if (m?.[1] === 'p') { showView('project'); await renderProject(root, m[2]); } else if (hash === '#/notes') { showView('notes'); await renderNotes(root); } else if (m?.[1] === 'n') { showView('note'); await renderNote(root, m[2]); } else if (hash === '#/artifacts') { showView('artifacts'); await renderArtifacts(root); } else if (m?.[1] === 'a') { showView('artifact'); await renderArtifact(root, m[2]); } else if (hash === '#/banners') { showView('banners'); await renderBanners(root, bannerCtx()); } else if (hash.startsWith(SHARE_PREFIX)) { showView('shared'); await renderShared(root, hash.slice(SHARE_PREFIX.length)); } else { newChat(); return; }
   root.scrollTop = 0;
   if (narrow()) setSidebar(false);
   document.querySelectorAll('.chat-item').forEach((n) => n.classList.remove('active'));
+}
+
+/** What the Banners page may use: toasts, the title bar, and the local model (words only). */
+function bannerCtx() {
+  return {
+    toast, go, setTitle: (t, o = {}) => setHeader(t, o),
+    llm: {
+      label: () => model().label,
+      gb: () => model().gb,
+      ready: () => modelReady(model()),
+      cached: () => modelCached(model()),
+      progress: () => state.loadProgress,
+      busy: () => state.busy,
+      load: () => startLoad(model()),
+      async ask(messages, { signal } = {}) {
+        setBusy(true);
+        try {
+          return await runChat(model(), messages, { signal, temperature: 0.7, think: false });
+        } finally {
+          setBusy(false);
+          updateModelState();
+        }
+      },
+    },
+  };
 }
 
 // ---------------------------------------------------------------- projects in chats
@@ -340,6 +377,17 @@ async function saveReplyAsNote(msg) {
   const note = await createNote({ title: `${noteTitleFrom(body)}`, body, projectId: state.chat?.projectId || null });
   toast('Saved to Notes');
   return note;
+}
+
+/** "Save" on a code block in a reply: keep it as an artifact (in the chat's project, if any). */
+async function saveCodeAsArtifact(block) {
+  const content = block.querySelector('code').textContent;
+  const tag = block.querySelector('.code-head span')?.textContent || '';
+  const lang = tag === 'code' ? '' : tag;
+  const kind = kindFromLang(lang, content);
+  const a = await createArtifact({ kind, lang: kind === 'code' ? lang : '', content, title: artifactTitle(kind, content, lang), projectId: state.chat?.projectId || null });
+  toast('Saved to Artifacts', { action: { label: 'Open', run: () => go(`#/a/${a.id}`) } });
+  return a;
 }
 
 // ---------------------------------------------------------------- chat list
@@ -591,11 +639,94 @@ function linkCitations(root, sources) {
 }
 
 /** The "Searched Wikipedia for …" lines at the top of a reply. */
-function renderToolSteps(node, steps) {
-  const box = node.querySelector('.tool-steps');
-  box.hidden = !steps?.length;
-  if (!steps?.length) return;
-  box.innerHTML = steps.map((s) => `<div class="tool-step ${s.status}">${s.status === 'running' ? '<span class="spin" aria-hidden="true"></span>' : toolIcon(s.tool)}<span>${escapeHTML(stepLabel(s))}</span></div>`).join('');
+// ---------------------------------------------------------------- live status of a reply
+// Every step is something the app really did, timed as it happened: loading the model, reading
+// project files and attachments, web searches, reading the prompt, thinking, writing. Nothing is
+// shown for show. The finished list is saved with the reply.
+
+const TRACE_ICONS = {
+  model: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>',
+  project: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  file: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/>',
+  memory: '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.1 15.9M14.5 14.5L20 20M8.1 8.1L12 12"/>',
+  read: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  think: '<path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>',
+  write: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  preview: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/>',
+  stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
+  warn: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
+};
+const traceIcon = (id) => `<svg viewBox="0 0 24 24" aria-hidden="true">${TRACE_ICONS[id] || TOOL_ICONS[id] || TRACE_ICONS.read}</svg>`;
+
+/** "0.4s", "12s", "1m 05s" */
+function fmtMs(ms) {
+  if (ms < 10_000) return `${(ms / 1000).toFixed(1)}s`;
+  const s = Math.round(ms / 1000);
+  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, '0')}s`;
+}
+
+/** A live list of steps on a reply that is being made. */
+function createTrace(node) {
+  const t = { node, steps: [], t0: performance.now(), live: true, said: '' };
+  t.add = (step) => { const s = { status: 'running', ...step, start: performance.now() }; t.steps.push(s); renderTrace(t); return s; };
+  t.note = (step) => { const s = { status: 'done', ...step }; t.steps.push(s); renderTrace(t); return s; };
+  t.end = (s, patch = {}) => {
+    if (!s || s.status !== 'running') return;
+    Object.assign(s, { status: 'done', ms: performance.now() - s.start }, patch);
+    renderTrace(t);
+  };
+  t.drop = (s) => { t.steps = t.steps.filter((x) => x !== s); renderTrace(t); };
+  t.running = () => t.steps.filter((s) => s.status === 'running');
+  t.timer = setInterval(() => { if (t.running().length) renderTrace(t); }, 250);
+  t.finish = ({ stopped = false } = {}) => {
+    clearInterval(t.timer);
+    for (const s of t.running()) Object.assign(s, { status: stopped ? 'stopped' : 'done', ms: performance.now() - s.start, ...(stopped ? { label: `${s.live}: stopped by you` } : {}) });
+    t.live = false;
+    t.total = performance.now() - t.t0;
+    t.stopped = stopped;
+    renderTrace(t);
+  };
+  t.toJSON = () => ({ total: Math.round(t.total || 0), stopped: t.stopped || undefined, steps: t.steps.map(({ icon, label, status, ms, tool }) => ({ icon, label, status, ...(ms != null ? { ms: Math.round(ms) } : {}), ...(tool ? { tool } : {}) })) });
+  return t;
+}
+
+function traceRow(s, now, fresh = false) {
+  const running = s.status === 'running';
+  const text = running ? `${s.live}…` : s.label;
+  const ms = running ? now - s.start : s.ms;
+  const cls = `trace-step ${s.status}${s.tool ? ' tool-step' : ''}${fresh ? ' enter' : ''}`;
+  return `<li class="${cls}">${running ? '<span class="spin" aria-hidden="true"></span>' : traceIcon(s.status === 'stopped' ? 'stop' : s.status === 'warn' ? 'warn' : s.icon)}<span class="ts-text">${escapeHTML(text)}</span>${ms >= 50 ? `<small class="ts-time">${fmtMs(ms)}</small>` : ''}</li>`;
+}
+
+/** Draw a trace: live (open, current step in the header) or finished (one folded line). */
+function renderTrace(t) {
+  const box = t.node.querySelector('.trace');
+  if (!box) return;
+  box.hidden = !t.steps.length;
+  if (!t.steps.length) return;
+  const now = performance.now();
+  const current = t.live ? t.running().at(-1) : null;
+  const sum = box.querySelector('.trace-sum');
+  box.classList.toggle('live', t.live);
+  if (current) {
+    sum.innerHTML = `<span class="shimmer">${escapeHTML(current.live)}…</span><small>${fmtMs(now - t.t0)}</small>`;
+  } else {
+    const n = t.steps.length;
+    sum.innerHTML = `<span>${t.stopped ? 'Stopped' : t.live ? 'Working' : 'Done'} · ${n} step${n === 1 ? '' : 's'}</span><small>${fmtMs(t.live ? now - t.t0 : t.total || 0)}</small>`;
+  }
+  const shown = t.shown || 0;
+  box.querySelector('.trace-list').innerHTML = t.steps.map((s, i) => traceRow(s, now, t.live && i >= shown)).join('');
+  t.shown = t.steps.length; // only rows that are new this time slide in
+  // Screen readers hear each new step once, not every tick of the clock.
+  const say = current ? `${current.live}` : t.live ? '' : `${t.stopped ? 'Stopped' : 'Done'} in ${fmtMs(t.total || 0)}`;
+  if (say && say !== t.said) { t.said = say; t.node.querySelector('.trace-live').textContent = say; }
+}
+
+/** The saved steps of a finished reply (older replies only have their web tool steps). */
+function renderSavedTrace(node, msg) {
+  const saved = msg.trace || (msg.tools?.length ? { total: 0, steps: msg.tools.map((x) => ({ icon: x.tool, tool: x.tool, status: x.status, label: stepLabel(x) })) } : null);
+  if (!saved?.steps?.length) { node.querySelector('.trace').hidden = true; return; }
+  renderTrace({ node, steps: saved.steps, live: false, total: saved.total, stopped: saved.stopped, running: () => [], said: 'x' });
 }
 
 /** Numbered source links under a reply. */
@@ -610,7 +741,7 @@ function renderAssistant(msg, index) {
   const node = $('tpl-assistant').content.firstElementChild.cloneNode(true);
   node.dataset.index = index;
   fillAssistant(node, msg.content, { thinkMs: msg.thinkMs || 0, sources: msg.sources });
-  renderToolSteps(node, msg.tools);
+  renderSavedTrace(node, msg);
   renderSources(node, msg.sources);
   const meta = [msg.model, msg.ms ? `${(msg.ms / 1000).toFixed(1)}s` : '', msg.stopped ? 'stopped' : ''].filter(Boolean).join(' · ');
   node.querySelector('.meta').textContent = meta;
@@ -717,11 +848,12 @@ function fileChip(f, onRemove) {
   card.innerHTML = `<div class="fc-top">${fileIconHTML(kind)}<span class="fc-type" style="--fc:${kind.color}"></span></div>`
     + '<pre class="fc-peek"></pre><div class="fc-foot"><span class="fc-name"></span><span class="fc-meta"><span class="fc-size"></span><span class="fc-lines"></span></span></div>';
   card.querySelector('.fc-type').textContent = f.pasted ? 'PASTED' : (fileExt(f.name) || 'txt').toUpperCase();
-  card.querySelector('.fc-peek').textContent = f.pdf ? 'PDF document\nClick to open' : String(f.text || '').split('\n').slice(0, 4).join('\n').slice(0, 300);
+  const peek = f.pdf && f.text ? f.text.replace(/^\[Page 1\]\n/, '') : f.text;
+  card.querySelector('.fc-peek').textContent = f.pdf && !f.text ? 'PDF document\nClick to open' : String(peek || '').split('\n').slice(0, 4).join('\n').slice(0, 300);
   card.querySelector('.fc-name').textContent = f.name;
   card.querySelector('.fc-size').textContent = formatSize(f.size);
   const n = lineCount(f.text);
-  card.querySelector('.fc-lines').textContent = f.pdf ? 'Opens on the right' : `${n} line${n === 1 ? '' : 's'}`;
+  card.querySelector('.fc-lines').textContent = f.pdf ? (f.pages ? `${f.pages} page${f.pages === 1 ? '' : 's'}` : 'Opens on the right') : `${n} line${n === 1 ? '' : 's'}`;
   const open = () => (f.pdf ? openPanel({ kind: 'pdf', title: f.name, data: f.data, size: f.size }) : isPreviewable(fileExt(f.name), f.text) ? openPanel({ kind: 'html', title: f.name, code: f.text }) : previewFile(f));
   card.addEventListener('click', open);
   card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
@@ -766,13 +898,30 @@ function readDataURL(file) {
   });
 }
 
+/** Fill a PDF attachment's text (and pages, cut, error) from its bytes, in the browser. */
+async function readPdf(f, bytes) {
+  try {
+    const r = await pdfText(bytes ?? await (await fetch(f.data)).arrayBuffer());
+    Object.assign(f, { text: r.text, pages: r.pages, read: r.read, cut: r.cut });
+    delete f.error;
+  } catch (e) {
+    Object.assign(f, { text: '', pages: 0, error: e?.message || 'This PDF could not be read' });
+  }
+  return f;
+}
+
 /** Read text files in the browser (nothing is uploaded). Binary and huge files are refused. */
 async function addFiles(list) {
   if (!list.length) return;
   for (const file of list) {
     if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
       if (file.size > MAX_PDF_BYTES) { toast(`${file.name} is too big (max 15 MB)`); continue; }
-      state.pending.push({ name: file.name, size: file.size, pdf: true, data: await readDataURL(file), text: '' });
+      const item = { name: file.name, size: file.size, pdf: true, data: await readDataURL(file), text: '' };
+      toast(`Reading ${file.name}…`);
+      await readPdf(item, await file.arrayBuffer());
+      if (item.error) toast(`${file.name}: ${item.error}. It is attached, but the model can't read it.`);
+      else if (!item.text) toast(`${file.name} has no text to read; it looks like scanned pictures`);
+      state.pending.push(item);
       continue;
     }
     if (file.size > MAX_FILE_BYTES) { toast(`${file.name} is too big (max 300 KB)`); continue; }
@@ -787,20 +936,6 @@ async function addFiles(list) {
 // ---------------------------------------------------------------- side panel (HTML preview, PDF)
 
 const panel = { kind: '', title: '', code: '', data: '', url: '' };
-
-/**
- * HTML runs in a sandboxed iframe without allow-same-origin, so it gets an opaque origin: it
- * cannot read this app's chats, storage or cookies. A strict CSP also blocks every network
- * request, so a page cannot send anything anywhere.
- */
-function sandboxedDoc(code) {
-  const csp = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:";
-  const meta = `<meta http-equiv="Content-Security-Policy" content="${csp}">`;
-  const src = String(code || '');
-  if (/<head[^>]*>/i.test(src)) return src.replace(/<head[^>]*>/i, (m) => `${m}${meta}`);
-  if (/^\s*<svg[\s>]/i.test(src)) return `<!doctype html><html><head>${meta}<style>body{margin:0;display:grid;place-items:center;min-height:100vh}</style></head><body>${src}</body></html>`;
-  return `<!doctype html><html><head>${meta}<meta charset="utf-8"></head><body>${src}</body></html>`;
-}
 
 function dataURLToBlobURL(dataURL) {
   const [head, b64] = String(dataURL).split(',');
@@ -830,13 +965,7 @@ function renderPanelBody(tab = 'preview') {
     body.appendChild(box);
     return;
   }
-  const frame = document.createElement('iframe');
-  frame.className = 'sp-frame';
-  frame.title = `Preview of ${panel.title}`;
-  frame.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals allow-popups');
-  frame.setAttribute('referrerpolicy', 'no-referrer');
-  frame.srcdoc = sandboxedDoc(panel.code);
-  body.appendChild(frame);
+  body.appendChild(sandboxedFrame(panel.code, `Preview of ${panel.title}`));
 }
 
 /** Open the right-hand panel: { kind: 'html', title, code } or { kind: 'pdf', title, data, size }. */
@@ -1049,6 +1178,7 @@ async function ensureModel(signal) {
     if (!ok) return false;
   }
   const resizing = loadedWithOtherCtx(m);
+  state.lastLoad = { what: resizing ? 'resized' : cached ? 'loaded' : 'downloaded', start: performance.now() };
   const c = card(`<h3>${resizing ? `Resizing memory to ${fmtCtx(m.ctx)}` : cached ? 'Loading' : 'Downloading'} ${resizing ? '' : m.label}…</h3>
     <div class="progress"><i style="width:${Math.round(state.loadProgress * 100)}%"></i></div><div class="ptext">Starting…</div>`);
   try {
@@ -1067,6 +1197,8 @@ async function respond() {
   const controller = new AbortController();
   state.controller = controller;
   setBusy(true);
+  const wasReady = modelReady(model());
+  state.lastLoad = null;
   try {
     if (!(await ensureModel(controller.signal))) { finishRun(controller); return; }
   } catch (e) {
@@ -1078,11 +1210,49 @@ async function respond() {
   const settings = getSettings();
   const project = chat.projectId ? await getProject(chat.projectId) : null;
   const budgets = budgetsFor(m.ctx);
-  const system = composeSystem({ base: settings.systemPrompt, project, budget: budgets.knowledge }).text;
+  const composed = composeSystem({ base: settings.systemPrompt, project, budget: budgets.knowledge });
+  const system = composed.text;
   const index = chat.messages.length;
   const node = renderAssistant({ role: 'assistant', content: '' }, index);
   node.classList.add('streaming');
   el.messages.appendChild(node);
+  const trace = createTrace(node);
+  node.querySelector('.trace').open = true;
+  const where = m.engine === 'gpu' ? 'on your GPU' : m.engine === 'cpu' ? 'on your CPU' : 'in demo mode';
+  if (!wasReady && state.lastLoad) {
+    const ms = performance.now() - state.lastLoad.start;
+    trace.note({ icon: 'model', ms, label: state.lastLoad.what === 'downloaded' ? `Downloaded ${m.label} (${m.gb} GB) and loaded it ${where}`
+      : state.lastLoad.what === 'resized' ? `Resized the model's memory to ${fmtCtx(m.ctx)}` : `Loaded ${m.label} into memory ${where}` });
+  } else {
+    trace.note({ icon: 'model', label: `Using ${m.label} ${where} · ${fmtCtx(m.ctx)} memory` });
+  }
+  if (project) {
+    const f = composed.files;
+    const parts = [composed.instructions ? 'its instructions' : '', f.length ? `${f.length} file${f.length === 1 ? '' : 's'} (${f.map((x) => x.name).join(', ')})` : ''].filter(Boolean);
+    const skipped = (project.files || []).length - f.length;
+    const cut = f.filter((x) => x.cut).length;
+    trace.note({ icon: 'project', label: `Read project “${project.name}”${parts.length ? `: ${parts.join(' and ')}` : ''}${f.length ? ` · ${composed.used.toLocaleString()} characters` : ''}` });
+    if (skipped > 0 || cut) trace.note({ icon: 'warn', status: 'warn', label: `Project files too big for the model's memory: ${[cut ? `${cut} cut short` : '', skipped > 0 ? `${skipped} left out` : ''].filter(Boolean).join(', ')}` });
+  }
+  const userTurn = chat.messages.findLast((x) => x.role === 'user');
+  const attached = userTurn?.files || [];
+  const texts = attached.filter((f) => !f.pdf);
+  // This turn's PDFs, plus any earlier one saved before PDFs could be read (it is read now).
+  const pdfs = [...new Set([...attached, ...chat.messages.flatMap((x) => x.files || [])])].filter((f) => f.pdf && (attached.includes(f) || f.pages === undefined));
+  if (texts.length) trace.note({ icon: 'file', label: `Read ${texts.length} attached file${texts.length === 1 ? '' : 's'}: ${texts.map((f) => f.name).join(', ')}${texts.some((f) => String(f.text || '').length > 6000) ? ' (long ones cut to fit)' : ''}` });
+  for (const f of pdfs) {
+    let step = null;
+    if (f.pages === undefined) { // attached before PDFs could be read: read it now (timed, so it shows)
+      step = trace.add({ icon: 'file', live: `Reading ${f.name}` });
+      await readPdf(f);
+      saveChat(chat);
+    }
+    const len = String(f.text || '').length;
+    const done = f.error ? { icon: 'warn', status: 'warn', label: `Couldn't read ${f.name}: ${f.error}` }
+      : !len ? { icon: 'warn', status: 'warn', label: `No text in ${f.name}: it looks like scanned pictures, which can't be read yet` }
+        : { icon: 'file', label: `Read PDF ${f.name}: ${f.read < f.pages ? `${f.read} of ${f.pages}` : f.pages} page${f.pages === 1 ? '' : 's'} · ${len.toLocaleString()} characters${len > 6000 ? ' (cut to fit the model\'s memory)' : ''}` };
+    if (step) trace.end(step, done); else trace.note(done);
+  }
   scrollToBottom(true);
 
   // Web tools run first (only those the user turned on, or named with /wiki, /ddg, /read).
@@ -1094,15 +1264,22 @@ async function respond() {
   const plan = planTools(lastUser?.content, settings.tools || {});
   if (plan.calls.length) {
     try {
-      ({ steps, sources } = await runTools(plan.calls, { signal: controller.signal, onStep: (_, all) => { renderToolSteps(node, all); scrollToBottom(); } }));
+      const rows = new Map();
+      ({ steps, sources } = await runTools(plan.calls, { signal: controller.signal, onStep: (st) => {
+        const label = stepLabel(st);
+        if (!rows.has(st)) rows.set(st, trace.add({ icon: st.tool, tool: st.tool, live: label.replace(/…$/, '') }));
+        const row = rows.get(st);
+        if (st.status !== 'running') trace.end(row, { status: st.status, label });
+        scrollToBottom();
+      } }));
     } catch (e) {
+      trace.finish();
       node.remove();
       if (e?.name !== 'AbortError') showError(e);
       finishRun(controller);
       return;
     }
-    if (state.chat !== chat) { node.remove(); finishRun(controller); return; }
-    renderToolSteps(node, steps);
+    if (state.chat !== chat) { trace.finish(); node.remove(); finishRun(controller); return; }
     renderSources(node, sources);
   }
   if (plan.calls.length || plan.explicit) {
@@ -1130,6 +1307,40 @@ async function respond() {
   let reply = '';
   let stoppedEarly = false;
   const prompt = buildPrompt(history, { systemPrompt: system, budgetChars: budgets.prompt });
+  const turnsAll = history.filter((x) => (x.role === 'user' || x.role === 'assistant') && (String(x.content ?? '').trim() || x.files?.length)).length;
+  const dropped = turnsAll - (prompt.length - 1);
+  if (dropped > 0) trace.note({ icon: 'memory', label: `Left out ${dropped} older message${dropped === 1 ? '' : 's'} to fit the model's ${fmtCtx(m.ctx)} memory` });
+  const promptChars = prompt.reduce((a, x) => a + x.content.length, 0);
+  // Phases of the model's own work, switched by what the stream really contains.
+  let phase = null; // 'read' | 'think' | 'write'
+  let readRow = null;
+  let thinkRow = null;
+  let writeRow = null;
+  let writeTokens = 0;
+  const onStream = (text) => {
+    const parts = splitThinking(text);
+    if (phase === 'read') {
+      trace.end(readRow, { label: `Read the conversation: ${prompt.length - 1} message${prompt.length === 2 ? '' : 's'}, ${promptChars.toLocaleString()} characters` });
+      phase = null;
+    }
+    if (parts.thinkingOpen && !thinkRow && phase !== 'think') {
+      phase = 'think';
+      thinkRow = trace.add({ icon: 'think', live: 'Thinking' });
+    }
+    if (!parts.thinkingOpen && phase === 'think') {
+      if (parts.thinking.trim()) trace.end(thinkRow, { label: 'Thought it through' }); else trace.drop(thinkRow);
+      phase = null;
+    }
+    if (!parts.thinkingOpen && parts.answer.trim() && phase !== 'write' && !writeRow) {
+      phase = 'write';
+      writeRow = trace.add({ icon: 'write', live: 'Writing the answer' });
+    }
+    if (phase === 'write') writeTokens++;
+  };
+  const startReading = (again = false) => {
+    phase = 'read';
+    readRow = trace.add({ icon: 'read', live: again ? 'Reading the conversation again, to answer without thinking' : 'Reading the conversation' });
+  };
   const think = !!settings.think && !state.noThinkOnce;
   state.noThinkOnce = false;
   // Small reasoning models can think in circles. Past the limit, stop the thinking and ask again
@@ -1146,7 +1357,7 @@ async function respond() {
     try {
       return prefix + await runChat(m, prompt, {
         signal: inner.signal, temperature: Number(settings.temperature), think: withThinking,
-        onToken: (t) => { latest = prefix + t; trackThinking(latest); frame ||= requestAnimationFrame(paint); },
+        onToken: (t) => { latest = prefix + t; trackThinking(latest); onStream(latest); frame ||= requestAnimationFrame(paint); },
       });
     } finally {
       clearInterval(timer);
@@ -1155,15 +1366,20 @@ async function respond() {
   };
   try {
     try {
+      startReading();
       reply = await runOnce(think);
     } catch (e) {
       if (!(e?.name === 'AbortError' && cutThinking && !controller.signal.aborted)) throw e;
       thinkMs = performance.now() - thinkStart;
+      trace.end(thinkRow, { status: 'warn', label: `Thinking went on too long: stopped it after ${thoughtFor(thinkMs)}` });
+      phase = null;
+      startReading(true);
       const thoughts = splitThinking(latest).thinking;
       reply = await runOnce(false, `<think>${thoughts}\n\n(Thinking stopped after ${thoughtFor(thinkMs)}; answered directly.)</think>`);
     }
   } catch (e) {
     if (e?.name === 'AbortError') { stoppedEarly = true; reply = latest; } else {
+      trace.finish();
       node.remove();
       showError(e);
       finishRun(controller);
@@ -1171,15 +1387,24 @@ async function respond() {
     }
   }
   if (frame) cancelAnimationFrame(frame);
+  if (writeRow?.status === 'running' && !stoppedEarly) {
+    const words = (splitThinking(reply).answer.match(/\S+/g) || []).length;
+    const secs = (performance.now() - writeRow.start) / 1000;
+    trace.end(writeRow, { label: `Wrote the answer: ${words.toLocaleString()} word${words === 1 ? '' : 's'}${secs >= 0.5 && writeTokens > 3 ? ` · ${(writeTokens / secs).toFixed(1)} tokens/s` : ''}` });
+  }
+  const doc = !stoppedEarly && htmlDocIn(splitThinking(reply).answer);
+  const docTitle = doc ? /<title>([^<]{1,60})<\/title>/i.exec(doc)?.[1] || 'page.html' : '';
+  if (doc) trace.note({ icon: 'preview', label: `Opened “${docTitle}” in the preview panel` });
+  trace.finish({ stopped: stoppedEarly });
   if (state.chat === chat && (reply.trim() || !stoppedEarly)) {
     chat.messages.push({ role: 'assistant', content: reply.trim() || '_(no reply)_', at: Date.now(), model: m.label, ms: Math.round(performance.now() - started), ...(thinkMs ? { thinkMs: Math.round(thinkMs) } : {}), ...(stoppedEarly ? { stopped: true } : {}),
+      trace: trace.toJSON(),
       ...(steps.length ? { tools: steps.map(({ tool, query, status, count, error }) => ({ tool, query, status, count, error })) } : {}),
       ...(sources.length ? { sources: sources.map(({ n, tool, title, url }) => ({ n, tool, title, url })) } : {}) });
     await persist();
     if (state.chat === chat) {
       renderChat();
-      const doc = !stoppedEarly && htmlDocIn(splitThinking(reply).answer);
-      if (doc) openPanel({ kind: 'html', title: /<title>([^<]{1,60})<\/title>/i.exec(doc)?.[1] || 'page.html', code: doc });
+      if (doc) openPanel({ kind: 'html', title: docTitle, code: doc });
     }
   } else {
     node.remove();
@@ -1454,6 +1679,7 @@ const PAL_ICON = {
   project: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   note: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>',
   action: '<path d="M13 3L4 14h7l-1 7 9-11h-7z"/>',
+  artifact: '<path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/>',
   key: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"/>',
 };
 const pal = { items: [], index: 0, token: 0 };
@@ -1466,6 +1692,9 @@ function paletteActions() {
     { label: 'New note', run: async () => { const n = await createNote(); go(`#/n/${n.id}`); } },
     { label: 'Go to Projects', run: () => go('#/projects') },
     { label: 'Go to Notes', run: () => go('#/notes') },
+    { label: 'New artifact', run: async () => { const a = await createArtifact({ kind: 'html' }); go(`#/a/${a.id}`); } },
+    { label: 'Go to Artifacts', run: () => go('#/artifacts') },
+    { label: 'Make a banner or thumbnail', run: () => go('#/banners') },
     { label: 'Settings', hint: `${MOD} ,`, run: () => openSettings() },
     { label: `Theme: switch to ${document.documentElement.dataset.theme === 'dark' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches) ? 'light' : 'dark'}`, run: () => {
       const dark = document.documentElement.dataset.theme === 'dark' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
@@ -1487,7 +1716,7 @@ async function renderPalette() {
     list.innerHTML = `<div class="pal-group">Keyboard shortcuts</div>${SHORTCUTS.map(([k, what]) => `<div class="pal-key"><span>${what}</span><span>${k.split(' ').map((x) => `<kbd>${x}</kbd>`).join('')}</span></div>`).join('')}`;
     return;
   }
-  const [chats, projects, notes] = await Promise.all([listChats(), listProjects(), listItems('notes')]);
+  const [chats, projects, notes, artifacts] = await Promise.all([listChats(), listProjects(), listItems('notes'), listItems('artifacts')]);
   if (token !== pal.token) return;
   const has = (t) => String(t || '').toLowerCase().includes(q);
   const groups = [
@@ -1495,6 +1724,7 @@ async function renderPalette() {
     ['Chats', (q ? chats.filter((c) => matchChat(c, q)) : chats).slice(0, q ? 8 : 5).map((c) => ({ label: c.title || 'New chat', sub: c._hit || '', icon: 'chat', run: () => go(`#/c/${c.id}`) }))],
     ['Projects', projects.filter((p) => !q || has(p.name) || has(p.description)).slice(0, q ? 5 : 3).map((p) => ({ label: p.name, sub: p.description || '', icon: 'project', run: () => go(`#/p/${p.id}`) }))],
     ['Notes', notes.filter((n) => !q || has(n.title) || has(n.body)).slice(0, q ? 5 : 3).map((n) => ({ label: n.title || 'Untitled note', sub: String(n.body || '').replace(/\s+/g, ' ').slice(0, 80), icon: 'note', run: () => go(`#/n/${n.id}`) }))],
+    ['Artifacts', artifacts.filter((a) => !q || has(a.title) || has(a.content)).slice(0, q ? 5 : 3).map((a) => ({ label: a.title || 'Untitled artifact', sub: a.kind === 'code' ? `${a.lang || 'Code'}` : a.kind, icon: 'artifact', run: () => go(`#/a/${a.id}`) }))],
   ].filter(([, items]) => items.length);
   chats.forEach((c) => delete c._hit);
   pal.items = groups.flatMap(([, items]) => items);
@@ -1709,6 +1939,8 @@ function wire() {
   el.messages.addEventListener('click', (e) => {
     const b = e.target.closest('[data-copy-code]');
     if (b) copyText(b.closest('.code-block').querySelector('code').textContent);
+    const sv = e.target.closest('[data-save-artifact]');
+    if (sv) saveCodeAsArtifact(sv.closest('.code-block'));
     const pv = e.target.closest('[data-preview-code]');
     if (pv) {
       const block = pv.closest('.code-block');

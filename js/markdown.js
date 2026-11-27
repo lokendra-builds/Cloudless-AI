@@ -42,6 +42,7 @@ function codeBlock(lang, code) {
   const preview = isPreviewable(lang, code)
     ? '<button type="button" class="copy-code preview-code" data-preview-code>Preview</button>' : '';
   return `<div class="code-block"><div class="code-head"><span>${l || 'code'}</span><span class="code-actions">${preview}`
+    + '<button type="button" class="copy-code" data-save-artifact title="Save to Artifacts">Save</button>'
     + '<button type="button" class="copy-code" data-copy-code>Copy</button></span></div>'
     + `<pre><code${l ? ` class="language-${l}"` : ''}>${highlight(code, lang)}</code></pre></div>`;
 }

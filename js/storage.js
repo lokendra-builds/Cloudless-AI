@@ -1,4 +1,4 @@
-// Everything stays in this browser: settings in localStorage; chats, projects and notes in IndexedDB.
+// Everything stays in this browser: settings in localStorage; chats, projects, notes and artifacts in IndexedDB.
 // Nothing is ever sent to a server. Falls back to memory when storage is blocked.
 
 const SETTINGS_KEY = 'cloudless.settings';
@@ -6,7 +6,8 @@ const DB_NAME = 'cloudless';
 // chats:    {id, title, projectId|null, createdAt, updatedAt, messages: [{role, content, files?}]}
 // projects: {id, name, description, instructions, files: [{name, size, text}], createdAt, updatedAt}
 // notes:    {id, title, body (Markdown), projectId|null, createdAt, updatedAt}
-const STORES = ['chats', 'projects', 'notes'];
+// artifacts: {id, title, kind: html|svg|markdown|code, lang, content, projectId|null, shared?, createdAt, updatedAt}
+const STORES = ['chats', 'projects', 'notes', 'artifacts'];
 
 export const DEFAULT_SETTINGS = Object.freeze({
   engine: 'cpu', // 'cpu' (wllama, any computer) or 'gpu' (WebLLM, needs WebGPU)
@@ -25,7 +26,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
 });
 
 let memorySettings = null;
-const memory = { chats: new Map(), projects: new Map(), notes: new Map() };
+const memory = { chats: new Map(), projects: new Map(), notes: new Map(), artifacts: new Map() };
 
 export function getSettings() {
   let saved = memorySettings;
@@ -47,11 +48,15 @@ function openDB() {
   if (!dbPromise) {
     dbPromise = new Promise((resolve) => {
       try {
-        const req = indexedDB.open(DB_NAME, 2); // v2 added projects + notes
+        const req = indexedDB.open(DB_NAME, 3); // v2 added projects + notes, v3 artifacts
         req.onupgradeneeded = () => STORES.forEach((name) => {
           if (!req.result.objectStoreNames.contains(name)) req.result.createObjectStore(name, { keyPath: 'id' });
         });
-        req.onsuccess = () => resolve(req.result);
+        req.onsuccess = () => {
+          // A newer version opened in another tab (e.g. after an update): let it upgrade.
+          req.result.onversionchange = () => { req.result.close(); dbPromise = null; };
+          resolve(req.result);
+        };
         req.onerror = () => resolve(null);
       } catch {
         resolve(null);
@@ -112,7 +117,7 @@ export async function clearAll() {
 /**
  * Factory reset for Cloudless-AI only. Other apps can share this site (on GitHub Pages every
  * repo of an account lives on the same origin), so nothing outside Cloudless-AI is touched:
- *  - the "cloudless" IndexedDB database (chats, projects, notes)
+ *  - the "cloudless" IndexedDB database (chats, projects, notes, artifacts)
  *  - localStorage / sessionStorage keys that start with "cloudless."
  *  - the model files Cloudless-AI itself downloaded (`models`: [{engine, id}])
  *  - this app's own service worker (by scope)

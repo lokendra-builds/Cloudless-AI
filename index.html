@@ -17,6 +17,7 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
+  <link rel="alternate" type="text/markdown" href="llms.txt" title="Cloudless-AI summary for AI assistants">
   <link rel="preload" href="vendor/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="vendor/fonts/source-serif-4.woff2" as="font" type="font/woff2" crossorigin>
   <meta property="og:type" content="website">
@@ -40,9 +41,10 @@
     "@graph": [
       {
         "@type": "SoftwareApplication",
+        "@id": "https://lokendra-builds.github.io/Cloudless-AI/#app",
         "name": "Cloudless-AI",
         "url": "https://lokendra-builds.github.io/Cloudless-AI/",
-        "description": "Private AI chat assistant that runs entirely in the web browser with local LLMs on the CPU (WebAssembly) or GPU (WebGPU). Projects, notes and chat history are stored on the device. No server, account or API key.",
+        "description": "Cloudless-AI is a free, open-source AI chat app that runs open language models such as Qwen3, Llama 3.2 and Gemma in the web browser, on the CPU (WebAssembly) or GPU (WebGPU). Chats, projects, notes and artifacts are stored on the device. No server, account or API key.",
         "applicationCategory": "ProductivityApplication",
         "applicationSubCategory": "AI assistant",
         "operatingSystem": "Any (modern web browser)",
@@ -51,23 +53,21 @@
         "license": "https://opensource.org/licenses/MIT",
         "isAccessibleForFree": true,
         "codeRepository": "https://github.com/lokendra-builds/Cloudless-AI",
-        "featureList": ["Runs local LLMs in the browser", "CPU (WebAssembly) and GPU (WebGPU) modes", "Projects with instructions and knowledge files", "Markdown notes", "Chat search", "Works offline after the first model download", "No server, account or API key"],
-        "screenshot": "https://lokendra-builds.github.io/Cloudless-AI/screenshots/02-chat-code.png",
+        "featureList": ["Runs local LLMs in the browser", "CPU (WebAssembly) and GPU (WebGPU) modes", "15 open models from 0.4 to 5 GB", "Live status of every reply with real timings", "Projects with instructions and knowledge files", "Reads text inside PDFs, in the browser", "Markdown notes", "Artifacts: HTML, SVG, Markdown and code, shared as self-contained links", "Opt-in web tools: Wikipedia, DuckDuckGo, Jina Reader, with cited sources", "Think mode for reasoning models", "Context window up to 32K tokens", "Works offline after the first model download", "No server, account or API key"],
+        "screenshot": ["https://lokendra-builds.github.io/Cloudless-AI/assets/shot-chat.jpg", "https://lokendra-builds.github.io/Cloudless-AI/assets/shot-artifact.jpg"],
+        "softwareVersion": "2026.11",
+        "dateModified": "2026-11-27",
+        "inLanguage": "en",
         "image": "https://lokendra-builds.github.io/Cloudless-AI/assets/social-preview.png",
-        "author": { "@type": "Person", "name": "Lokendra Singh Rathore", "url": "https://github.com/lokendra-builds" }
+        "author": { "@type": "Person", "name": "Lokendra Singh Rathore", "url": "https://github.com/lokendra-builds", "sameAs": ["https://github.com/lokendra-builds"] },
+        "subjectOf": { "@type": "WebPage", "url": "https://lokendra-builds.github.io/Cloudless-AI/about.html", "name": "About Cloudless-AI" }
       },
       {
-        "@type": "FAQPage",
-        "mainEntity": [
-          { "@type": "Question", "name": "Does Cloudless-AI send my chats to a server?",
-            "acceptedAnswer": { "@type": "Answer", "text": "No. The model runs inside your browser tab and chats, projects and notes are saved in your browser's IndexedDB. The only downloads are the app itself and the model files, once." } },
-          { "@type": "Question", "name": "Do I need a GPU or an API key?",
-            "acceptedAnswer": { "@type": "Answer", "text": "No. CPU mode runs small open models (0.4 to 1.7 GB) with WebAssembly on any computer. GPU mode uses WebGPU for faster replies when your browser supports it. No API key is needed." } },
-          { "@type": "Question", "name": "Which models can it run?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Small open models such as Qwen3, Qwen2.5, Llama 3.2, Gemma, SmolLM2 and Phi-3.5. You pick one from the model menu and it downloads once." } },
-          { "@type": "Question", "name": "Does it work offline?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Yes, after the first visit and the first model download, the model is cached in your browser." } }
-        ]
+        "@type": "WebSite",
+        "name": "Cloudless-AI",
+        "url": "https://lokendra-builds.github.io/Cloudless-AI/",
+        "inLanguage": "en",
+        "publisher": { "@type": "Person", "name": "Lokendra Singh Rathore", "url": "https://github.com/lokendra-builds" }
       }
     ]
   }
@@ -95,7 +95,12 @@
     <div class="noscript">
       <h1>Cloudless-AI: private AI chat that runs in your browser</h1>
       <p>A free, open-source AI assistant that runs local language models (Qwen, Llama, Gemma, Phi) on your own CPU or GPU, inside the browser tab. Projects, notes and chat history stay on your device. No server, no account, no API key.</p>
-      <p>Cloudless-AI needs JavaScript. Turn it on, or read the <a href="https://github.com/lokendra-builds/Cloudless-AI">source code on GitHub</a>.</p>
+      <ul>
+        <li>15 open models from 0.4 to 5 GB: Qwen3, Qwen2.5, Llama 3.2, Gemma, SmolLM2, Phi-3.5, Llama 3.1 8B.</li>
+        <li>CPU mode with WebAssembly on any computer, GPU mode with WebGPU. Works offline after the first download.</li>
+        <li>Projects, Markdown notes, artifacts you can share as links, opt-in web search with cited sources, and a live status of every reply.</li>
+      </ul>
+      <p>Cloudless-AI needs JavaScript. Turn it on, read <a href="about.html">how Cloudless-AI works, its models and FAQ</a>, or see the <a href="https://github.com/lokendra-builds/Cloudless-AI">source code on GitHub</a>.</p>
     </div>
   </noscript>
   <div class="app preload" id="app">
@@ -124,6 +129,12 @@
         </a>
         <a class="nav-link" href="#/notes" data-nav="notes" title="Notes">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg><span class="label">Notes</span>
+        </a>
+        <a class="nav-link" href="#/artifacts" data-nav="artifacts" title="Artifacts">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/></svg><span class="label">Artifacts</span>
+        </a>
+        <a class="nav-link" href="#/banners" data-nav="banners" title="Banners">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15l3-3 2 2 3-4 2 5"/><circle cx="8.5" cy="9" r="1.2"/></svg><span class="label">Banners</span>
         </a>
       </nav>
       <div class="group-label recents-label">Recents</div>
@@ -248,7 +259,7 @@
       </div>
       </div>
       <section class="view page" id="view-page" hidden></section>
-      <footer class="made-corner"><span class="made-in">Made in India with <svg class="heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.3 2.9 4.5 6.6 4.5c2.1 0 3.6 1.1 4.4 2.6.8-1.5 2.3-2.6 4.4-2.6 3.7 0 5.7 3.8 4.2 7.2C19.5 16.4 12 21 12 21z"/></svg><span class="sr-only">love</span></span></footer>
+      <footer class="made-corner"><a class="about-link" href="about.html">About</a><span class="made-in">Made in India with <svg class="heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.3 2.9 4.5 6.6 4.5c2.1 0 3.6 1.1 4.4 2.6.8-1.5 2.3-2.6 4.4-2.6 3.7 0 5.7 3.8 4.2 7.2C19.5 16.4 12 21 12 21z"/></svg><span class="sr-only">love</span></span></footer>
     </main>
     <aside class="side-panel" id="side-panel" aria-label="Preview" hidden>
       <header class="sp-head">
@@ -361,7 +372,8 @@
   </template>
   <template id="tpl-assistant">
     <div class="msg assistant">
-      <div class="tool-steps" role="status" aria-live="polite" hidden></div>
+      <details class="trace" hidden><summary class="trace-sum"></summary><ol class="trace-list"></ol></details>
+      <span class="sr-only trace-live" role="status" aria-live="polite"></span>
       <details class="thinking" hidden><summary><span class="think-label">Thought process</span></summary><div class="think-body"></div></details>
       <div class="md"></div>
       <div class="sources" hidden></div>

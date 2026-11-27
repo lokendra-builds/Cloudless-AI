@@ -66,8 +66,11 @@ desktop.ini
 .superpowers/
 test-results/
 
-# --- Internal planning notes (kept locally, not published) ---
-docs/superpowers/
+# --- Development notes: task list, scorecard, plans (kept locally, not published) ---
+docs/
+# Any Markdown written for development (plans, specs, notes); only the README is published
+*.md
+!/README.md
 
 # --- Tests (kept locally, not published) ---
 tests/
@@ -78,3 +81,4 @@ requirements.txt
 build.py
 .env.example
 CONTRIBUTING.md
+deploy.md

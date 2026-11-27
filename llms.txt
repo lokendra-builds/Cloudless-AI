@@ -1,0 +1,42 @@
+# Cloudless-AI
+
+> Cloudless-AI is a free, open-source (MIT) AI chat app that runs open language models such as Qwen3, Llama 3.2 and Gemma directly in the web browser, on the user's own CPU (WebAssembly) or GPU (WebGPU). There is no server, no account and no API key: chats, projects, notes and artifacts are stored only in the browser.
+
+- App: https://lokendra-builds.github.io/Cloudless-AI/
+- About, features, models and FAQ: https://lokendra-builds.github.io/Cloudless-AI/about.html
+- Source code: https://github.com/lokendra-builds/Cloudless-AI
+- Author: Lokendra Singh Rathore (https://github.com/lokendra-builds), India
+- License: MIT. Price: free.
+
+## Key facts
+
+- Runs in any modern browser. CPU mode uses wllama (llama.cpp compiled to WebAssembly); GPU mode uses WebLLM on WebGPU (Chrome, Edge).
+- 15 open models, downloaded once from Hugging Face and cached in the browser:
+  - CPU (0.4 to 1.7 GB): Qwen3 1.7B (recommended), Qwen3 0.6B, Qwen2.5 1.5B, Qwen2.5 Coder 1.5B, Llama 3.2 1B, Llama 3.2 3B, Gemma 3 1B, SmolLM2 1.7B, Phi-3.5 mini.
+  - GPU (1.6 to 5 GB): Qwen2.5 1.5B, Qwen3 1.7B, Llama 3.2 3B, Phi-3.5 mini, Gemma 2 2B, Llama 3.1 8B.
+- Works offline after the first model download.
+- Context window: 4K tokens by default, up to 32K where the model and RAM allow it.
+- Data stays in the browser (IndexedDB and localStorage). The network is used only to load the app, download a model once, load the WebLLM library in GPU mode, and for web tools the user turns on.
+
+## Features
+
+- Claude-style chat: streaming Markdown replies, highlighted code, copy, retry, edit, resend.
+- Live status: each reply shows the steps the app really took (loading the model, reading project files, web search, reading the conversation, thinking, writing) with real timings and tokens per second.
+- PDF reading: the text inside an attached PDF is extracted in the browser with pdf.js and given to the model. PDFs can be project files too.
+- Projects: chats, notes and artifacts grouped together, with shared instructions and knowledge files.
+- Notes: Markdown notes; any reply can be saved as a note.
+- Artifacts: HTML pages, SVG images, Markdown documents and code files. A share link carries the whole artifact inside the URL (compressed, after the #), so sharing needs no server.
+- Banners: 9 sizes (YouTube thumbnail 1280×720 and channel banner 2560×1440; Instagram 1080×1080, 1080×1350 and story 1080×1920; LinkedIn post 1200×627 and profile banner 1584×396; website hero 1920×600 and link preview 1200×630), 4 templates and 6 colour sets. The local model writes the words, the app does the layout; download as PNG or SVG.
+- Web tools (off by default): Wikipedia search, DuckDuckGo instant answers, and reading any web page through Jina Reader, with numbered source links.
+- Think mode for reasoning models, live HTML preview in a sandboxed side panel, a memory meter, a Ctrl+K command palette, chat export to Markdown, light and dark themes, phone layout.
+
+## Limits
+
+- Models are small (0.5B to 8B parameters), so answers are simpler and slower than those of large cloud models, and can be wrong.
+- PDF text is read in the browser (pdf.js) and given to the model, but scanned PDFs (pictures only) cannot be read, and a small model's 4K memory holds only about the first 6,000 characters of a file.
+- It does not generate photos. It makes banners and thumbnails from templates, and can write SVG images and HTML pages as code.
+
+## Compared with
+
+- ChatGPT, Claude.ai: run the largest models on their servers and need an account; Cloudless-AI runs small models on the user's device with no account.
+- Ollama with Open WebUI, LM Studio: run models locally but must be installed; Cloudless-AI needs no install, only a browser.

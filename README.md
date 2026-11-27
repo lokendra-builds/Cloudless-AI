@@ -31,6 +31,19 @@ Every chat you type into a hosted AI goes to someone else's computer. Cloudless-
 
 </div>
 
+## Why Cloudless-AI
+
+- 🔑 **No LLM API, no API key.** No OpenAI, Claude or Gemini account, no token bills. The model itself runs on your machine.
+- 🖥️ **No backend.** It's a static web page. There is no server to deploy, nothing to pay for, and nothing that stores your data.
+- 🔒 **Private by design.** Chats, projects, notes, artifacts and settings stay in your browser (IndexedDB). Nothing is uploaded.
+- ✈️ **Works offline.** After the first download the model is cached, so it keeps working with the network off.
+- ⚡ **Runs on any computer.** CPU mode (WebAssembly) works everywhere; GPU mode (WebGPU) is faster where it's available.
+- 🧠 **Real open models.** Qwen3, Llama 3.2, Gemma, Phi-3.5 and more, from 0.4 GB, with a Think mode for harder questions.
+- 🌐 **Optional web lookups.** Wikipedia, DuckDuckGo and link reading, off until you turn them on, with source links in every answer.
+- 🎨 **Banners and thumbnails on the CPU.** 9 ready sizes for YouTube, Instagram, LinkedIn and websites, 4 templates, 6 colour sets. Type the text or let the local model write it, then download a PNG.
+- 🔗 **Share artifacts without a server.** Save a page, image, document or code as an artifact and share it as a link: the whole artifact is packed inside the link and opens in the other person's browser.
+- 💬 **Feels like Claude.** Projects, notes, artifacts, Markdown and code, live HTML preview, Ctrl+K palette, dark mode, phones.
+
 ## Quick start
 
 1. Open the **[live demo](https://lokendra-builds.github.io/Cloudless-AI/)**.
@@ -54,16 +67,20 @@ python3 -m http.server 8081
 | **Live HTML preview** | When a reply contains a web page, it opens in a panel on the right and runs there, sandboxed and offline. Switch between Preview and Code, copy or download it. |
 | **Projects** | Group chats and notes. Give a project its own instructions and knowledge files; every chat inside uses them. |
 | **Notes** | Markdown notes on their own or inside a project. Save any AI reply as a note in one click. |
+| **Artifacts** | HTML pages, SVG images, Markdown documents and code files you keep, on their own or inside a project. Press **Save** on any code block in a reply, or make one yourself. Preview and edit side by side; HTML runs sandboxed and offline. |
+| **Banners** | Thumbnails, posts and banners in 9 sizes: YouTube thumbnail and channel banner, Instagram square, portrait and story, LinkedIn post and profile banner, website hero and link preview. Pick one of 4 templates (Bold, Minimal, Split, Spotlight) and 6 colour sets, type your text or describe the topic and let the local model write it (it only writes the words, the app does the layout, so it works well even on a CPU). Text is sized to fit and kept inside each platform's safe area. Download a PNG at the exact size, an SVG, or save it as an artifact. |
+| **Share as a link** | **Share** packs the whole artifact into the link itself (compressed, after the `#`), so there is no upload and no server. Whoever opens the link sees it in their own browser and can **Save to my artifacts**. Very long links are flagged; files too big for a link can be downloaded instead. |
+| **Live status** | While a reply is made you see what is really happening, step by step, with real timings: loading the model, reading project files and attachments, searching the web, reading the conversation, thinking, writing (with tokens per second). When it's done it folds to one line, "Done · 5 steps · 6.2s", saved with the reply. |
 | **Reasoning models** | A **Think** switch: on for careful answers, off for fast ones. Thinking folds into "Thought for 6s", and endless thinking is stopped after a minute so you always get an answer. |
 | **Memory meter** | A small ring shows how full the model's memory is, and tells you when old messages start to drop out. Click it to change the size. |
 | **Context window slider** | 4K tokens by default. Raise it to 8K, 16K or 32K in Settings to keep longer chats and bigger project files in view. Each model only offers sizes it was trained for and that fit in memory, and the app shows the RAM it will use. |
 | **Web tools (opt-in)** | Let a chat look things up: **Wikipedia** search, **DuckDuckGo** instant answers, and **Read links** (any web page as text, through Jina Reader). All off by default. Turn them on from the **Web** button, or ask by name in one message: `/wiki Taj Mahal`, `/ddg Einstein`, `/read https://…`. Each reply shows what was searched and numbered source links, and the line under the box says exactly where your question goes. |
-| **Command palette** | Press Ctrl+K (⌘K on Mac) to jump to any chat, project or note, or run an action. Press ? for all shortcuts. |
+| **Command palette** | Press Ctrl+K (⌘K on Mac) to jump to any chat, project, note or artifact, or run an action. Press ? for all shortcuts. |
 | **Export** | Copy a chat as Markdown or download it as a `.md` file from the chat's title menu. |
 | **Search** | Find any chat by its title or by words inside it. |
-| **Attach files** | Drop text, code or PDF files anywhere on the chat. Each file gets a card with its type icon, size and a peek at the content; click to open it. Long pastes turn into a card too. Nothing is uploaded. |
+| **Attach files** | Drop text, code or PDF files anywhere on the chat. The text inside a PDF is read in your browser with pdf.js and given to the model. Each file gets a card with its type icon, size (or page count) and a peek at the content; click to open it. Long pastes turn into a card too. Nothing is uploaded. |
 | **Your setup** | Your name and photo, a system prompt, a creativity slider, light and dark themes. |
-| **Clean reset** | "Delete all data" wipes every chat, project, note and downloaded model, like a first visit. |
+| **Clean reset** | "Delete all data" wipes every chat, project, note, artifact and downloaded model, like a first visit. |
 | **Works on phones** | The sidebar folds away and the chat fills the screen. |
 
 <table>
@@ -91,9 +108,23 @@ python3 -m http.server 8081
     <td align="center">Dark theme</td>
     <td align="center">Notes, with an Edit / Preview switch</td>
   </tr>
+  <tr>
+    <td><img src="screenshots/05-projects.png" alt="The Projects page with project cards"></td>
+    <td align="center"><img src="screenshots/09-mobile-home.png" alt="Start screen on a phone" width="38%">&nbsp;&nbsp;<img src="screenshots/10-mobile-chat.png" alt="A chat on a phone" width="38%"></td>
+  </tr>
+  <tr>
+    <td align="center">All your projects</td>
+    <td align="center">On a phone</td>
+  </tr>
 </table>
 
 <p align="center"><img src="screenshots/11-html-preview.png" alt="A reply with an HTML tip calculator, running live in the side panel on the right" width="100%"><br><sub>A reply's web page runs in the side panel, like an artifact</sub></p>
+
+<p align="center"><img src="screenshots/12-web-tools.png" alt="A reply that searched Wikipedia, with numbered citations, source cards and the Web tools menu open" width="100%"><br><sub>Web tools: turn on Wikipedia, DuckDuckGo or link reading, and every answer shows its sources</sub></p>
+
+<p align="center"><img src="screenshots/14-banners.png" alt="The Banners page: size chips for YouTube, Instagram, LinkedIn and websites, template cards, and a green YouTube thumbnail reading 5 Min Paneer" width="100%"><br><sub>Banners: 9 sizes, 4 templates, text written by you or by the local model, downloaded as a PNG</sub></p>
+
+<p align="center"><img src="screenshots/13-artifacts.png" alt="An HTML artifact, a Pomodoro timer, running in its preview with the share link shown above it" width="100%"><br><sub>Artifacts: keep pages, images, documents and code, and share any of them as a link that carries the whole artifact</sub></p>
 
 <p align="center"><sub>Screenshots use scripted demo replies so they're repeatable. With a real model, the answers are its own.</sub></p>
 
@@ -148,13 +179,15 @@ CPU mode runs inside WebAssembly, which caps a tab at 4 GB, so each model offers
 
 | What | Where | Lasts until |
 |---|---|---|
-| Chats, projects, notes | IndexedDB (`cloudless`) | You delete them, or use "Delete all data" |
+| Chats, projects, notes, artifacts | IndexedDB (`cloudless`) | You delete them, or use "Delete all data" |
 | Settings, name, photo | localStorage (`cloudless.settings`) | Same |
 | CPU model files | Origin Private File System | Same |
 | GPU model files | Cache Storage | Same |
 | The model's working memory | RAM, in the tab | You close the tab |
 
 The network is used for three things only: loading the app, downloading model weights from Hugging Face the first time, and (GPU mode only) loading the WebLLM library from a CDN.
+
+A shared artifact link carries the artifact itself after the `#`. Browsers never send that part to a server, so the content goes only where you send the link. Anyone who has the link can open it, so share it like you would share the file. Shared HTML runs in a sandbox with no network and no access to the app's data.
 
 ## How it compares
 
@@ -183,7 +216,7 @@ Multi-threaded CPU inference needs cross-origin isolation. Static hosts like Git
 Yes, once the app and a model have loaded one time.
 
 **Can the model read my PDFs?**
-Not yet. PDFs open in the side panel so you can read them next to the chat, and the model is told it can't see them. Text and code files are read in full.
+Yes, PDFs that contain text. The text is read in your browser with [pdf.js](https://mozilla.github.io/pdf.js/) (loaded only the first time you attach a PDF) and given to the model, and the PDF also opens in the side panel. Scanned PDFs, which are only pictures, can't be read yet; the live status says so. A small model's 4K memory holds about the first 6,000 characters of each file, so ask about a part or paste the section you need for long documents. You can add PDFs to a project too.
 
 **Is the HTML preview safe?**
 It runs in a sandboxed frame with its own empty origin and a content policy that blocks all network requests, so a page can't read your chats or send data anywhere.
@@ -196,17 +229,23 @@ No. Other apps can share the same site (on GitHub Pages every repo of an account
 
 ## Deploy
 
-There is nothing to compile: the repository root is the site. GitHub Pages serves it straight from the `main` branch, and any static host works the same way: upload the files and open `index.html`.
+There is nothing to compile: the repository root is the site. The live demo is a clean copy of it (no screenshots) on GitHub Pages, and any static host works the same way: upload the files and open `index.html`.
 
-The app is checked by 79 end-to-end tests that drive it in headless Chromium with a mock model (pytest + Playwright). They are kept outside this repository.
+The app is checked by 103 end-to-end tests that drive it in headless Chromium with a mock model (pytest + Playwright). They are kept outside this repository.
 
 ## Project layout
 
 ```
 index.html            page shell, SEO tags
+about.html            static About page: features, models, privacy, FAQ (no JavaScript needed)
+llms.txt              plain summary for AI assistants (llmstxt.org)
 css/app.css           warm light and dark themes
+css/about.css         About page styles
 js/app.js             chat screen, sidebar, header menu, model menu, settings
-js/pages.js           Projects and Notes pages
+js/pages.js           Projects, Notes and Artifacts pages
+js/banners.js         banner sizes, templates, text fitting, SVG and PNG export
+js/banner-page.js     the Banners page
+js/artifacts.js       artifact kinds, share links (compress into the URL), sandbox
 js/llm.js             CPU (wllama) and GPU (WebLLM) engines, streaming
 js/chats.js           prompt building, project knowledge budget, titles
 js/tools.js           web tools: Wikipedia, DuckDuckGo, Jina Reader
@@ -216,7 +255,6 @@ js/storage.js         IndexedDB and localStorage, "Delete all data"
 vendor/wllama/        llama.cpp WebAssembly runtime (MIT)
 vendor/fonts/         Source Serif 4 and Inter (SIL OFL 1.1)
 coi-serviceworker.js  cross-origin isolation for multi-threading (MIT)
-docs/tasks.html       the build's task list, viewable in the browser
 ```
 
 ## Why JavaScript?
@@ -229,7 +267,7 @@ Issues and pull requests are welcome. Run it locally with `python3 -m http.serve
 
 ## Credits
 
-[wllama](https://github.com/ngxson/wllama) and [llama.cpp](https://github.com/ggml-org/llama.cpp) for CPU inference, [WebLLM](https://github.com/mlc-ai/web-llm) for GPU inference, [coi-serviceworker](https://github.com/gzuidhof/coi-serviceworker), and the [Source Serif 4](https://github.com/adobe-fonts/source-serif) and [Inter](https://rsms.me/inter/) fonts. Model weights come from their authors on Hugging Face under their own licenses. The optional web tools use the [Wikipedia API](https://www.mediawiki.org/wiki/API:Main_page) (article text is CC BY-SA 4.0; every reply links its sources), the [DuckDuckGo Instant Answer API](https://duckduckgo.com/duckduckgo-help-pages/open-source/instant-answer-interface/) and [Jina Reader](https://jina.ai/reader/), each under its own terms.
+[wllama](https://github.com/ngxson/wllama) and [llama.cpp](https://github.com/ggml-org/llama.cpp) for CPU inference, [WebLLM](https://github.com/mlc-ai/web-llm) for GPU inference, [coi-serviceworker](https://github.com/gzuidhof/coi-serviceworker), [pdf.js](https://github.com/mozilla/pdf.js) (Apache-2.0) for reading PDFs, and the [Source Serif 4](https://github.com/adobe-fonts/source-serif) and [Inter](https://rsms.me/inter/) fonts. Model weights come from their authors on Hugging Face under their own licenses. The optional web tools use the [Wikipedia API](https://www.mediawiki.org/wiki/API:Main_page) (article text is CC BY-SA 4.0; every reply links its sources), the [DuckDuckGo Instant Answer API](https://duckduckgo.com/duckduckgo-help-pages/open-source/instant-answer-interface/) and [Jina Reader](https://jina.ai/reader/), each under its own terms.
 
 ## License
 
