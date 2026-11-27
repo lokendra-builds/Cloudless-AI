@@ -76,6 +76,7 @@ docs/
 js/banners.js
 js/banner-page.js
 css/banners.css
+screenshots/14-banners.png
 
 # --- Tests (kept locally, not published) ---
 tests/

@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logo-512.png" alt="Cloudless-AI logo: a cloud with a spark inside" width="112">
+<img src="assets/logo-full.svg" alt="cloudless-ai logo: an outline cloud with an orange swoosh and a small sparkle" width="420">
 
 # Cloudless-AI: private AI chat that runs offline in your browser
 
@@ -272,6 +272,8 @@ Issues and pull requests are welcome. Run it locally with `python3 -m http.serve
 <div align="center">
 
 Built by [Lokendra Singh Rathore](https://github.com/lokendra-builds) · Made in India with ❤️
+
+<sub>Not affiliated with Anthropic, OpenAI or Google. Product names belong to their owners.</sub>
 
 <br />
 
